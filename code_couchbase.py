@@ -155,9 +155,11 @@ def main(argv):
         target_zip = sys.argv[2]
         print(target_zip)
         
+        # Get current working directory and create a new folder for repos contents
         dirpath = get_cwd()
         new_folder = create_folder(dirpath, 'repos')
 
+        # Download manifest xml
         xml_filename = download_file(manifest_url)
 
         # Get all contentents from the repo with listed commits
