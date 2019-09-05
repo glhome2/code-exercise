@@ -5,13 +5,14 @@
 # 1. Add the manifest itself into the target archive file
 ###
 import os
-import wget
+import sys, getopt
 import subprocess
 import xml.etree.ElementTree as ET
 import shutil
 from git import Repo
 import zipfile
 import time
+import wget
 
 # get working path/folder
 # 
@@ -28,9 +29,7 @@ def get_cwd():
 def create_folder(path, foldername):
     new_path = path + '/' + foldername
     try:
-        #os.rmdir(new_folder) # delete if the folder already exist
-        #os.system("rm -rf new_folder")
-        #subprocess.run(["rm", "-rf", new_folder])
+        shutil.rmtree(new_path) # delete the folder tree if it's not empty
         os.mkdir(new_path)
     except OSError:
         print ("Creation of the directory failed: " + new_path)
@@ -39,8 +38,7 @@ def create_folder(path, foldername):
     return new_path
 
 
-# manifest url
-#
+# Download xml with giving url
 def download_file(url):
     try:
         filename = wget.download(url)
@@ -51,16 +49,14 @@ def download_file(url):
         return filename
 
 
+# Get root object from xml
 def get_xml_root(filename):
     tree = ET.parse(filename)
     root = tree.getroot()
     return root
 
 
-# get xml root tree
-#root = get_xml_root(xml_filename)
-
-# create dictionary with repo name as key and url as value
+# Create dictionary with repo NAME as 'key' and FETCH as 'value'
 def get_repo_dict(filename):
     root = get_xml_root(filename)
     remote_repo = {}   
@@ -75,7 +71,7 @@ def get_repo_dict(filename):
     return remote_repo
 
 
-# revision dictionary
+# Create revision dictionary using REVISION as 'key' and REMOTE as 'value'
 def get_revision_dict(filename):
     root = get_xml_root(filename)
     revision = {}
@@ -90,10 +86,9 @@ def get_revision_dict(filename):
     return revision
 
 
-def zip_folder(foldername):
+# Archive entire folder
+def zip_folder(foldername, output_filename):
     # zip repo folder
-    timestr = time.strftime("%Y%m%d%H%M%S")
-    output_filename = "ziped_repo_" + timestr
     try:
         shutil.make_archive(output_filename, 'zip', foldername)
         print(output_filename)
@@ -106,13 +101,13 @@ def zip_folder(foldername):
         return output_filename +'.zip'
 
 
-# clone repos with commit id
+# Get contents from Clonetarged repos with commit id
 def clone_repos_commits(rr, rev, folder):
     for url, repof in zip(rr.values(), rr.keys()):
         # test it
         print(folder)
         temp = folder + '/' + repof
-        Repo.clone_from("https://github.com/glhome/python/", temp)
+        Repo.clone_from("https://github.com/glhome2/python-code/", temp)
         # test it
         for commit, remote in zip(rev.keys(), rev.values()):
             print(commit, remote)
@@ -133,6 +128,7 @@ def clone_repos_commits(rr, rev, folder):
                     print("Failed to access or downalod the git repo" )
 
 
+# Attache manifext xml to archived file
 def add_in_zip(file_attach, zipfile_path):
     try:
         m_zip = zipfile.ZipFile(zipfile_path,'a')
@@ -141,22 +137,42 @@ def add_in_zip(file_attach, zipfile_path):
     except:
         print(Exception)
 
+###
+# manifest_url = "https://raw.githubusercontent.com/couchbase/sync_gateway/master/manifest/default.xml"
+# target_zip = "repos_zip"
+###
 
-# Prep local folder in current directory
-dirpath = get_cwd()
-new_folder = create_folder(dirpath, 'repos')
+def main(argv):
+    # user input argv from cmd
+    if len(sys.argv) < 3:
+        print("You failed to provide xml url and zip file name as input on the command line!")
+        print("eg. code_couchbase.py xmlURL zipfileName ")
+        sys.exit(1)  # abort because of error
+    else:
+        manifest_url = sys.argv[1]
+        print(manifest_url)
+        target_zip = sys.argv[2]
+        print(target_zip)
+        
+        dirpath = get_cwd()
+        new_folder = create_folder(dirpath, 'repos')
 
-# Download manifest xml file
-manifest_url = "https://raw.githubusercontent.com/couchbase/sync_gateway/master/manifest/default.xml"
-xml_filename = download_file(manifest_url)
+        xml_filename = download_file(manifest_url)
 
-# Get all contentents from the repo with listed commits
-remote_repo = get_repo_dict(xml_filename)
-revision = get_revision_dict(xml_filename)
-clone_repos_commits(remote_repo, remote_repo, new_folder)
+        # Get all contentents from the repo with listed commits
+        remote_repo = get_repo_dict(xml_filename)
+        revision = get_revision_dict(xml_filename)
+        clone_repos_commits(remote_repo, remote_repo, new_folder)
 
-# Add local repos contents to zip file
-output_filename = zip_folder(new_folder)
+        # Add local repos contents to zip file
+        output_filename = zip_folder(new_folder, target_zip)
 
-# Add manifest to the target zip file
-add_in_zip(xml_filename, output_filename)
+        # Add manifest to the target zip file
+        add_in_zip(xml_filename, output_filename)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
+
+
+
