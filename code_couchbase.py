@@ -1,4 +1,5 @@
 ###
+# 
 # 1. Download the manifest xml from the url passed in ([Example Manifest](https://raw.githubusercontent.com/couchbase/sync_gateway/master/manifest/default.xml))
 # 1. Get the contents of every repo listed in the manifest at the revision (SHA or branch) specified by the 'revision' attribute, or the master branch if no revision is specified
 # 1. Add the contents of every repo into the target archive file (zip or .tar.gz)
@@ -105,9 +106,9 @@ def zip_folder(foldername, output_filename):
 def clone_repos_commits(rr, rev, folder):
     for url, repof in zip(rr.values(), rr.keys()):
         # test it
-        print(folder)
-        temp = folder + '/' + repof
-        Repo.clone_from("https://github.com/glhome2/python-code/", temp)
+        # print(folder)
+        # temp = folder + '/' + repof
+        # Repo.clone_from("https://github.com/glhome2/python-code/", temp)
         # test it
         for commit, remote in zip(rev.keys(), rev.values()):
             print(commit, remote)
