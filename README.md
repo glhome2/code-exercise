@@ -3,20 +3,8 @@
 1. install "git-repo" "wget"and "zip/unzip" on client machine
 2. run following bash script: with bash:
     
-    #!/bin/bash
-    xmlurl=$1
-    zipfile=$2
     
-    wget "$xmlurl"
-    mkdir project
-    cd project
-    repo init -u $xmlurl
-    repo sync
-    # zip project
-    cd ..
-    cp *.xml project/
-    zip -r $zipfile project
-    
+./backupmanifest.sh url repo.zip    
 
 
 ## Usage example
